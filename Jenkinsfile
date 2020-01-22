@@ -1,23 +1,30 @@
-pipeline {
-    agent any
-    
-    tools {nodejs "node"}
-    
-    stages {
-        stage('Cloning Git') {
-            steps {
-                git 'https://github.com/DeveloperWakeling/mocha_testing'
+node {
+    // Clean workspace before doing anything
+    deleteDir()
+
+    try {
+        stage ('Clone') {
+            checkout scm
+        }
+        stage ('Build') {
+            sh "echo 'shell scripts to build project...'"
+        }
+        stage ('Tests') {
+            parallel 'static': {
+                sh "echo 'shell scripts to run static tests...'"
+            },
+            'unit': {
+                sh "echo 'shell scripts to run unit tests...'"
+            },
+            'integration': {
+                sh "echo 'shell scripts to run integration tests...'"
             }
         }
-        stage('Install Dependencies'){
-            steps {
-                sh 'npm install'
-            }
+        stage ('Deploy') {
+            sh "echo 'shell scripts to deploy to server...'"
         }
-        stage ('Test') {
-            steps {
-                sh 'npm test'
-            }
-        }
+    } catch (err) {
+        currentBuild.result = 'FAILED'
+        throw err
     }
 }
